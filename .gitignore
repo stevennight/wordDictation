@@ -1,0 +1,5 @@
+/.vercel
+/config.json
+/dist
+/handwriting_cache
+/history

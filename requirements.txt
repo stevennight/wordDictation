@@ -1,0 +1,6 @@
+python-docx
+customtkinter
+Pillow
+pyinstaller
+tkinterdnd2
+pywin32
