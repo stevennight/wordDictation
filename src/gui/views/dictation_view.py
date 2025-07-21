@@ -35,8 +35,12 @@ class DictationView(customtkinter.CTkFrame):
         self.clear_button_tool = customtkinter.CTkButton(self.tool_frame, text="清空", command=self.canvas.clear_canvas)
         self.clear_button_tool.pack(side="left", padx=10, pady=5)
 
-        self.input_mode_menu = customtkinter.CTkOptionMenu(self.tool_frame, values=["鼠标", "触摸", "笔"], command=self.set_input_mode)
-        self.input_mode_menu.pack(side="left", padx=10, pady=5)
+
+
+        self.pen_size_slider = customtkinter.CTkSlider(self.tool_frame, from_=1, to=10, command=self.set_pen_size)
+        self.pen_size_slider.set(2)
+        self.pen_size_slider.pack(side="left", padx=10, pady=5)
+
         self.set_pen_mode()
 
     def _create_control_buttons(self):
@@ -48,7 +52,7 @@ class DictationView(customtkinter.CTkFrame):
         self.submit_button = customtkinter.CTkButton(self.button_frame, text="提交", command=self.app_callbacks['submit_answer'], height=50, font=button_font)
         self.submit_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        self.end_button = customtkinter.CTkButton(self.button_frame, text="提前结束", command=self.app_callbacks['finish_session'], height=50, font=button_font, fg_color="#D32F2F")
+        self.end_button = customtkinter.CTkButton(self.button_frame, text="提前结束", command=self.app_callbacks['finish_session'], height=50, font=button_font, fg_color="#D32F2F", hover_color="#B71C1C")
         self.end_button.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
     def _create_judgement_buttons(self):
@@ -59,12 +63,13 @@ class DictationView(customtkinter.CTkFrame):
         self.correct_button = customtkinter.CTkButton(self.judgement_frame, text="正确", command=lambda: self.app_callbacks['record_result'](True), height=50, font=button_font)
         self.correct_button.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        self.incorrect_button = customtkinter.CTkButton(self.judgement_frame, text="错误", command=lambda: self.app_callbacks['record_result'](False), height=50, font=button_font)
+        self.incorrect_button = customtkinter.CTkButton(self.judgement_frame, text="错误", command=lambda: self.app_callbacks['record_result'](False), height=50, font=button_font, fg_color="#D32F2F", hover_color="#B71C1C")
         self.incorrect_button.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
-    def set_input_mode(self, mode):
-        self.app_callbacks['set_input_mode'](mode)
-        self.canvas.set_input_mode(mode)
+
+
+    def set_pen_size(self, size):
+        self.canvas.set_pen_size(int(size))
 
     def set_pen_mode(self):
         self.canvas.paint_mode = "pen"

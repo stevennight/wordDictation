@@ -10,7 +10,7 @@ class CopyingView(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        self.prompt_label = customtkinter.CTkLabel(self, text=f"抄写: {self.word_data.get('prompt', '')}", font=("Arial", 24))
+        self.prompt_label = customtkinter.CTkLabel(self, text=f"抄写: {self.word_data.get('prompt', '')}  正确答案: {self.word_data.get('answer', '')}", font=("Arial", 24))
         self.prompt_label.grid(row=0, column=0, pady=20)
 
         self.canvas = HandwritingCanvas(self)
@@ -37,12 +37,9 @@ class CopyingView(customtkinter.CTkFrame):
         self.eraser_size_slider.pack(side="left", padx=10, pady=5)
         self.eraser_size_slider.set(20)
 
-        self.input_mode_menu = customtkinter.CTkOptionMenu(self.tool_frame, values=["鼠标", "触摸", "笔"], command=self.set_input_mode)
-        self.input_mode_menu.pack(side="left", padx=10, pady=5)
 
-    def set_input_mode(self, mode):
-        self.callbacks['set_input_mode'](mode)
-        self.canvas.set_input_mode(mode)
+
+
 
     def set_paint_mode(self, mode):
         if mode == "画笔":

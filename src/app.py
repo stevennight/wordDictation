@@ -20,7 +20,8 @@ class App(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.master.title("默写小助手")
-        self.master.geometry("800x600")
+        self.master.geometry("1280x900")
+        self.master.attributes("-fullscreen", True)
 
         self.config = load_config()
         self.apply_config()
@@ -33,7 +34,7 @@ class App(customtkinter.CTkFrame):
         self.results = []
         self.review_images = []
         self.word_file_path = None
-        self.fullscreen = False
+        self.fullscreen = True
         self.history_detail_context = None
 
         self._create_widgets()
@@ -243,7 +244,7 @@ class App(customtkinter.CTkFrame):
     def finish_session(self):
         self.history_button.pack(side="left", padx=10, pady=5)
         if self.results:
-            self.show_summary(save=False)
+            self.show_summary(save=True)
         else:
             self.show_initial_view()
 

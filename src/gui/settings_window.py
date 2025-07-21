@@ -15,7 +15,7 @@ class SettingsWindow(customtkinter.CTkToplevel):
         self.grid_columnconfigure(0, weight=1)
 
         # Theme settings
-        theme_frame = customtkinter.CTkFrame(self)
+        theme_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         theme_frame.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
         theme_label = customtkinter.CTkLabel(theme_frame, text="主题:")
         theme_label.pack(side="left", padx=10)
@@ -24,7 +24,7 @@ class SettingsWindow(customtkinter.CTkToplevel):
         self.theme_menu.pack(side="left", padx=10)
 
         # History settings
-        history_frame = customtkinter.CTkFrame(self)
+        history_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         history_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
         history_label = customtkinter.CTkLabel(history_frame, text="保存历史记录数量:")
         history_label.pack(side="left", padx=10)
@@ -33,7 +33,7 @@ class SettingsWindow(customtkinter.CTkToplevel):
         self.history_entry.pack(side="left", padx=10)
 
         # Registry settings
-        self.registry_frame = customtkinter.CTkFrame(self)
+        self.registry_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.registry_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         self.update_registry_buttons()
 

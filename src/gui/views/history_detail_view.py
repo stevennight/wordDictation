@@ -34,23 +34,23 @@ class HistoryDetailView(customtkinter.CTkFrame):
         self.title_label = customtkinter.CTkLabel(top_frame, text=title_text, font=customtkinter.CTkFont(size=20, weight="bold"))
         self.title_label.pack()
 
-        if self.is_summary_view:
-            self.summary_label = customtkinter.CTkLabel(top_frame, text="", font=("Arial", 16))
-            self.summary_label.pack(pady=5)
-            
-            self.filter_var = customtkinter.BooleanVar()
-            self.filter_checkbox = customtkinter.CTkCheckBox(top_frame, text="只显示错误项", variable=self.filter_var, command=self.display_results, height=20)
-            self.filter_checkbox.pack(pady=5)
+        self.summary_label = customtkinter.CTkLabel(top_frame, text="", font=("Arial", 16))
+        self.summary_label.pack(pady=5)
+        
+        self.filter_var = customtkinter.BooleanVar()
+        self.filter_checkbox = customtkinter.CTkCheckBox(top_frame, text="只显示错误项", variable=self.filter_var, command=self.display_results, height=20)
+        self.filter_checkbox.pack(pady=5)
 
         self.scrollable_frame = customtkinter.CTkScrollableFrame(self)
         self.scrollable_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
+        self.scrollable_frame.bind("<Enter>", self._on_enter)
+        self.scrollable_frame.bind("<Leave>", self._on_leave)
 
         button_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         button_frame.grid(row=2, column=0, pady=20)
 
-        if self.is_summary_view:
-            self.retry_button = customtkinter.CTkButton(button_frame, text="重试错题", command=self.callbacks['retry_incorrect'], height=40, font=("Arial", 16))
-            self.retry_button.pack(side="left", padx=20)
+        self.retry_button = customtkinter.CTkButton(button_frame, text="重试错题", command=self.callbacks['retry_incorrect'], height=40, font=("Arial", 16))
+        self.retry_button.pack(side="left", padx=20)
         
         back_command = self.callbacks.get('show_initial_view', lambda: None)
         self.back_button = customtkinter.CTkButton(button_frame, text="返回主菜单", command=back_command, height=40, font=("Arial", 16))
@@ -65,6 +65,16 @@ class HistoryDetailView(customtkinter.CTkFrame):
                 history_data = json.load(f)
 
             self.results = history_data.get("results", []) if isinstance(history_data, dict) else history_data
+            
+            correct_count = sum(1 for r in self.results if r['correct'])
+            incorrect_count = len(self.results) - correct_count
+            self.summary_label.configure(text=f"正确: {correct_count} | 错误: {incorrect_count}")
+
+            if incorrect_count == 0:
+                self.retry_button.configure(state="disabled")
+            else:
+                self.retry_button.configure(state="normal")
+
             self.display_results()
 
         except Exception as e:
@@ -85,7 +95,7 @@ class HistoryDetailView(customtkinter.CTkFrame):
             widget.destroy()
 
         results_to_display = self.results
-        if self.is_summary_view and self.filter_var.get():
+        if self.filter_var.get():
             results_to_display = [res for res in self.results if not res['correct']]
 
         for i, res in enumerate(results_to_display):
@@ -159,3 +169,28 @@ class HistoryDetailView(customtkinter.CTkFrame):
                 img_label.bind("<Button-1>", lambda e, p=image_path: self.show_full_image(p))
             except Exception as e:
                 print(f"Error loading image {image_path}: {e}")
+
+    def _on_enter(self, event):
+        self.scrollable_frame.bind_all("<MouseWheel>", self._on_mouse_wheel)
+        try:
+            self.scrollable_frame.bind_all("<TouchMove>", self._on_touch_scroll)
+            self.scrollable_frame.bind_all("<PenMove>", self._on_pen_scroll)
+        except:
+            pass
+
+    def _on_leave(self, event):
+        self.scrollable_frame.unbind_all("<MouseWheel>")
+        try:
+            self.scrollable_frame.unbind_all("<TouchMove>")
+            self.scrollable_frame.unbind_all("<PenMove>")
+        except:
+            pass
+
+    def _on_mouse_wheel(self, event):
+        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def _on_touch_scroll(self, event):
+        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def _on_pen_scroll(self, event):
+        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")

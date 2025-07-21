@@ -13,74 +13,43 @@ class HandwritingCanvas(customtkinter.CTkCanvas):
         self.last_x, self.last_y = None, None
         self.paint_mode = "pen"
         self.pen_color = "black"
-        self.pen_size = 4
+        self.pen_width = 4
+        self.eraser_width = 20
         self.annotation_mode = False
 
-        self.input_mode = "鼠标"
-        self.set_input_mode(self.input_mode)
+        self.bind("<ButtonPress-1>", self.start_paint)
+        self.bind("<B1-Motion>", self.paint)
+        self.bind("<ButtonRelease-1>", self.reset_paint)
 
     def set_pen_color(self, color):
         self.pen_color = color
 
+    def set_pen_size(self, size):
+        self.pen_width = int(size)
+
     def set_eraser_size(self, size):
-        self.pen_size = int(size)
+        self.eraser_width = int(size)
 
-    def set_input_mode(self, mode):
-        self.input_mode = mode
-        # 解绑所有事件，以防重复绑定
-        for event in ["<ButtonPress-1>", "<B1-Motion>", "<ButtonRelease-1>", 
-                      "<Touch-Begin>", "<Touch-Move>", "<Touch-End>",
-                      "<Pen-Begin>", "<Pen-Move>", "<Pen-End>"]:
-            self.unbind(event)
 
-        try:
-            self.bind("<ButtonPress-1>", self.start_paint)
-            self.bind("<B1-Motion>", self.paint)
-            self.bind("<ButtonRelease-1>", self.reset_paint)
-            self.bind("<Touch-Begin>", self.start_paint)
-            self.bind("<Touch-Move>", self.paint)
-            self.bind("<Touch-End>", self.reset_paint)
-            self.bind("<Pen-Begin>", self.start_paint)
-            self.bind("<Pen-Move>", self.paint)
-            self.bind("<Pen-End>", self.reset_paint)
-        except tkinter.TclError as e:
-            if 'Touch' in str(e) or 'Pen' in str(e):
-                pass # 忽略不支持的触摸和笔事件
-            else:
-                raise e
 
     def start_paint(self, event):
-        if not self._is_event_allowed(event):
-            return
         self.last_x, self.last_y = event.x, event.y
 
     def paint(self, event):
-        if not self._is_event_allowed(event) or self.last_x is None:
-            return
         if self.last_x and self.last_y:
             if self.annotation_mode:
                 color = "red"
                 width = 3
-                self.create_line(self.last_x, self.last_y, event.x, event.y, fill=color, width=width, capstyle=tkinter.ROUND, smooth=tkinter.TRUE, splinesteps=36, tags="annotation")
+                self.create_line(self.last_x, self.last_y, event.x, event.y, fill=color, width=width, capstyle=tkinter.ROUND, smooth=tkinter.TRUE, splinesteps=1, tags="annotation")
             else:
                 color = self.pen_color if self.paint_mode == "pen" else "white"
-                width = self.pen_size if self.paint_mode == "pen" else 50
-                self.create_line(self.last_x, self.last_y, event.x, event.y, fill=color, width=width, capstyle=tkinter.ROUND, smooth=tkinter.TRUE, splinesteps=36)
+                width = self.pen_width if self.paint_mode == "pen" else self.eraser_width
+                self.create_line(self.last_x, self.last_y, event.x, event.y, fill=color, width=width, capstyle=tkinter.ROUND, smooth=tkinter.TRUE, splinesteps=1)
             self.last_x, self.last_y = event.x, event.y
 
     def reset_paint(self, event):
         self.last_x, self.last_y = None, None
 
-    def _is_event_allowed(self, event):
-        event_type_str = str(event.type)
-
-        if self.input_mode == "鼠标":
-            return event_type_str in ["ButtonPress", "Motion", "ButtonRelease", "4", "5", "6"]
-        elif self.input_mode == "触摸":
-            return event_type_str in ["TouchBegin", "TouchMove", "TouchEnd"]
-        elif self.input_mode == "笔":
-            return event_type_str in ["PenBegin", "PenMove", "PenEnd"]
-        return False
 
     def clear_canvas(self):
         self.delete("all")
