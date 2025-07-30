@@ -240,8 +240,12 @@ class App(customtkinter.CTkFrame):
 
     def retry_incorrect(self):
         self.dictation_list = [res for res in self.results if not res['correct']]
+        if not self.dictation_list:
+            tkinter.messagebox.showinfo("提示", "没有错题可以重做。")
+            return
         # Convert back to the original format if needed
         self.dictation_list = [{'prompt': d['prompt'], 'answer': d['answer']} for d in self.dictation_list]
+        self.word_file_path = None  # 重做错题时，没有原始文件路径
         self.start_dictation()
 
     def finish_session(self):

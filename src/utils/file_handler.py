@@ -43,8 +43,11 @@ def save_history(results, stats, word_file_path, config):
         os.makedirs(HISTORY_DIR)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    file_basename = os.path.splitext(os.path.basename(word_file_path))[0]
-    history_filename_base = f"{file_basename}_{timestamp}"
+    if word_file_path:
+        file_basename = os.path.splitext(os.path.basename(word_file_path))[0]
+        history_filename_base = f"{file_basename}_{timestamp}"
+    else:
+        history_filename_base = f"retry_{timestamp}"
     history_json_path = os.path.join(HISTORY_DIR, f"{history_filename_base}.json")
     history_image_dir = os.path.join(HISTORY_DIR, history_filename_base)
 

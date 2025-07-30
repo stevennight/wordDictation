@@ -58,12 +58,16 @@ class HistoryDetailView(customtkinter.CTkFrame):
         button_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         button_frame.grid(row=2, column=0, pady=20)
 
-        self.retry_button = customtkinter.CTkButton(button_frame, text="重试错题", command=self.callbacks['retry_incorrect'], height=40, font=("Arial", 16))
+        self.retry_button = customtkinter.CTkButton(button_frame, text="重试错题", command=self.retry_incorrect, height=40, font=("Arial", 16))
         self.retry_button.pack(side="left", padx=20)
         
         back_command = self.callbacks.get('show_initial_view', lambda: None)
         self.back_button = customtkinter.CTkButton(button_frame, text="返回主菜单", command=back_command, height=40, font=("Arial", 16))
         self.back_button.pack(side="left", padx=20)
+
+    def retry_incorrect(self):
+        self.master.master.results = self.results
+        self.callbacks['retry_incorrect']()
 
     def load_history_details(self):
         history_dir = "history"

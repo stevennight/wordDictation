@@ -27,9 +27,7 @@ class DictationView(customtkinter.CTkFrame):
         self.answer_label.grid(row=3, column=0, pady=10, sticky="ew")
 
         self._create_tool_frame()
-        self._create_annotation_tool_frame()
         self._create_control_buttons()
-        self._create_judgement_buttons()
 
     def _create_tool_frame(self):
         self.tool_frame = customtkinter.CTkFrame(self, fg_color="transparent")
@@ -115,15 +113,19 @@ class DictationView(customtkinter.CTkFrame):
         self.canvas.paint_mode = "pen"
         self.pen_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
         self.eraser_button.configure(fg_color="gray")
-        self.annotation_pen_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
-        self.annotation_eraser_button.configure(fg_color="gray")
+        if hasattr(self, 'annotation_pen_button'):
+            self.annotation_pen_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
+        if hasattr(self, 'annotation_eraser_button'):
+            self.annotation_eraser_button.configure(fg_color="gray")
 
     def set_eraser_mode(self):
         self.canvas.paint_mode = "eraser"
         self.eraser_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
         self.pen_button.configure(fg_color="gray")
-        self.annotation_eraser_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
-        self.annotation_pen_button.configure(fg_color="gray")
+        if hasattr(self, 'annotation_eraser_button'):
+            self.annotation_eraser_button.configure(fg_color=customtkinter.ThemeManager.theme["CTkButton"]["fg_color"])
+        if hasattr(self, 'annotation_pen_button'):
+            self.annotation_pen_button.configure(fg_color="gray")
 
     def update_prompt(self, text, current_word_index=None, total_words=None):
         if current_word_index is not None and total_words is not None:
@@ -138,8 +140,10 @@ class DictationView(customtkinter.CTkFrame):
         self.canvas.clear_canvas()
         self.canvas.clear_annotations() # 确保批注也被清除
         self.answer_label.configure(text="")
-        self.judgement_frame.grid_forget()
-        self.annotation_tool_frame.grid_forget()
+        if hasattr(self, 'judgement_frame'):
+            self.judgement_frame.grid_forget()
+        if hasattr(self, 'annotation_tool_frame'):
+            self.annotation_tool_frame.grid_forget()
         self.tool_frame.grid(row=2, column=0, pady=10, sticky="ew")
         self.button_frame.grid(row=4, column=0, pady=20, sticky="ew")
         self.submit_button.configure(state="normal")
@@ -147,6 +151,11 @@ class DictationView(customtkinter.CTkFrame):
         self.set_pen_mode()
 
     def enter_annotation_mode(self):
+        if not hasattr(self, 'annotation_tool_frame'):
+            self._create_annotation_tool_frame()
+        if not hasattr(self, 'judgement_frame'):
+            self._create_judgement_buttons()
+
         self.canvas.annotation_mode = True
         self.prompt_label.configure(text="请用红色墨迹批注，完成后点击下方按钮")
         self.tool_frame.grid_forget()

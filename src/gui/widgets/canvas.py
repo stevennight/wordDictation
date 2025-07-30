@@ -1,7 +1,7 @@
 import customtkinter
 from tkinter import messagebox
 import tkinter
-from PIL import ImageGrab
+from PIL import Image, ImageGrab
 import os
 
 IMAGE_CACHE_DIR = "handwriting_cache"
@@ -63,15 +63,20 @@ class HandwritingCanvas(customtkinter.CTkCanvas):
 
     def save_image(self, filename):
         """Saves the current canvas content as an image."""
-        x = self.winfo_rootx()
-        y = self.winfo_rooty()
-        w = self.winfo_width()
-        h = self.winfo_height()
         try:
+            # Create the cache directory if it doesn't exist
+            if not os.path.exists(IMAGE_CACHE_DIR):
+                os.makedirs(IMAGE_CACHE_DIR)
+
+            x = self.winfo_rootx()
+            y = self.winfo_rooty()
+            w = self.winfo_width()
+            h = self.winfo_height()
+            
             img = ImageGrab.grab(bbox=(x, y, x + w, y + h))
             img_path = os.path.join(IMAGE_CACHE_DIR, filename)
             img.save(img_path)
             return img_path
         except Exception as e:
-            print(f"Error saving canvas image: {e}")
+            messagebox.showerror("Error", f"Failed to save image: {e}")
             return None
