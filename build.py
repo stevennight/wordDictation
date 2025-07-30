@@ -14,8 +14,10 @@ if __name__ == '__main__':
         '--name=WordDictation',
         '--onefile',
         '--windowed',
+        '--icon=src/icon.ico',
         f'--add-data={customtkinter_path};customtkinter',
         f'--add-data={tkinterdnd2_path};tkinterdnd2',
+        '--add-data=src;src',
     ])
 
     print("打包完成！请在 'dist' 文件夹中查找 WordDictation.exe")

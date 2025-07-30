@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\Steve\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\customtkinter', 'customtkinter'), ('C:\\Users\\Steve\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\tkinterdnd2', 'tkinterdnd2')],
+    datas=[('C:\\Users\\Steve\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\customtkinter', 'customtkinter'), ('C:\\Users\\Steve\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\tkinterdnd2', 'tkinterdnd2'), ('src', 'src')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['src\\icon.ico'],
 )

@@ -24,4 +24,5 @@ if __name__ == "__main__":
     app = App(root)
     app.pack(fill="both", expand=True)
     root.protocol("WM_DELETE_WINDOW", root.destroy)
+    root.iconbitmap("src/icon.ico")
     root.mainloop()
