@@ -167,6 +167,15 @@ class HistoryDetailView(customtkinter.CTkFrame):
         self.add_image(image_frame, original_image_path, 0)
         self.add_image(image_frame, annotated_image_path, 1)
 
+        # Bind events to all child widgets of the item_frame
+        for widget in item_frame.winfo_children():
+            widget.bind("<ButtonPress-1>", self._on_button_press)
+            widget.bind("<B1-Motion>", self._on_motion)
+            widget.bind("<ButtonRelease-1>", self._on_button_release)
+            widget.bind("<MouseWheel>", self._on_mouse_wheel)
+            widget.bind("<Button-4>", self._on_mouse_wheel)
+            widget.bind("<Button-5>", self._on_mouse_wheel)
+
     def add_image(self, parent, image_path, col):
         if image_path and os.path.exists(image_path):
             try:
@@ -185,7 +194,7 @@ class HistoryDetailView(customtkinter.CTkFrame):
     def _on_motion(self, event):
         if hasattr(self, 'dragging') and self.dragging:
             delta_y = event.y - self.last_y
-            self.scrollable_frame._parent_canvas.yview_scroll(-1 * int(delta_y / 2), "units")
+            self.scrollable_frame._parent_canvas.yview_scroll(-1 * int(delta_y), "units")
             self.last_y = event.y
 
     def _on_button_release(self, event):
@@ -193,4 +202,4 @@ class HistoryDetailView(customtkinter.CTkFrame):
 
     def _on_mouse_wheel(self, event):
         delta = -1 * (event.delta if hasattr(event, 'delta') else (-120 if event.num == 4 else 120))
-        self.scrollable_frame._parent_canvas.yview_scroll(int(delta/120), "units")
+        self.scrollable_frame._parent_canvas.yview_scroll(int(delta/40), "units")

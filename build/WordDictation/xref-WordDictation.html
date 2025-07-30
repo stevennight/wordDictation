@@ -7468,6 +7468,7 @@ imported by:
  &#8226;   <a href="#src.gui.views.history_view">src.gui.views.history_view</a>
  &#8226;   <a href="#src.gui.views.initial_view">src.gui.views.initial_view</a>
  &#8226;   <a href="#src.gui.widgets.canvas">src.gui.widgets.canvas</a>
+ &#8226;   <a href="#src.gui.widgets.color_picker">src.gui.widgets.color_picker</a>
 
   </div>
 
@@ -31110,6 +31111,9 @@ imports:
     <a href="#customtkinter">customtkinter</a>
  &#8226;   <a href="#src.gui.views">src.gui.views</a>
  &#8226;   <a href="#src.gui.widgets.canvas">src.gui.widgets.canvas</a>
+ &#8226;   <a href="#src.gui.widgets.color_picker">src.gui.widgets.color_picker</a>
+ &#8226;   <a href="#src.utils">src.utils</a>
+ &#8226;   <a href="#src.utils.config_manager">src.utils.config_manager</a>
 
   </div>
   <div class="import">
@@ -31148,6 +31152,8 @@ imports:
     <a href="#customtkinter">customtkinter</a>
  &#8226;   <a href="#src.gui.views">src.gui.views</a>
  &#8226;   <a href="#src.gui.widgets.canvas">src.gui.widgets.canvas</a>
+ &#8226;   <a href="#src.utils">src.utils</a>
+ &#8226;   <a href="#src.utils.config_manager">src.utils.config_manager</a>
 
   </div>
   <div class="import">
@@ -31228,6 +31234,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#src.gui.widgets.canvas">src.gui.widgets.canvas</a>
+ &#8226;   <a href="#src.gui.widgets.color_picker">src.gui.widgets.color_picker</a>
 
   </div>
 
@@ -31257,16 +31264,38 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="src.gui.widgets.color_picker"></a>
+  <a target="code" href="///C:/Users/Steve/Documents/Projects/Self/wordDictation/src/gui/widgets/color_picker.py" type="text/plain"><tt>src.gui.widgets.color_picker</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#customtkinter">customtkinter</a>
+ &#8226;   <a href="#src.gui.widgets">src.gui.widgets</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.colorchooser">tkinter.colorchooser</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#src.gui.views.copying_view">src.gui.views.copying_view</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="src.utils"></a>
   <a target="code" href="///C:/Users/Steve/Documents/Projects/Self/wordDictation/src/utils/__init__.py" type="text/plain"><tt>src.utils</tt></a>
 <span class="moduletype">Package</span>  <div class="import">
 imports:
     <a href="#src">src</a>
+ &#8226;   <a href="#src.utils.config_manager">src.utils.config_manager</a>
 
   </div>
   <div class="import">
 imported by:
-    <a href="#src.utils.config_manager">src.utils.config_manager</a>
+    <a href="#src.gui.views.copying_view">src.gui.views.copying_view</a>
+ &#8226;   <a href="#src.gui.views.dictation_view">src.gui.views.dictation_view</a>
+ &#8226;   <a href="#src.utils.config_manager">src.utils.config_manager</a>
  &#8226;   <a href="#src.utils.file_handler">src.utils.file_handler</a>
  &#8226;   <a href="#src.utils.registry_handler">src.utils.registry_handler</a>
 
@@ -31287,6 +31316,9 @@ imports:
   <div class="import">
 imported by:
     <a href="#src.app">src.app</a>
+ &#8226;   <a href="#src.gui.views.copying_view">src.gui.views.copying_view</a>
+ &#8226;   <a href="#src.gui.views.dictation_view">src.gui.views.dictation_view</a>
+ &#8226;   <a href="#src.utils">src.utils</a>
 
   </div>
 
@@ -32336,6 +32368,7 @@ imports:
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#re">re</a>
  &#8226;   <a href="#sys">sys</a>
+ &#8226;   <a href="#tkinter.colorchooser">tkinter.colorchooser</a>
  &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
  &#8226;   <a href="#tkinter.constants">tkinter.constants</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
@@ -32370,6 +32403,8 @@ imported by:
  &#8226;   <a href="#customtkinter.windows.widgets.scaling.scaling_tracker">customtkinter.windows.widgets.scaling.scaling_tracker</a>
  &#8226;   <a href="#src.app">src.app</a>
  &#8226;   <a href="#src.gui.widgets.canvas">src.gui.widgets.canvas</a>
+ &#8226;   <a href="#src.gui.widgets.color_picker">src.gui.widgets.color_picker</a>
+ &#8226;   <a href="#tkinter.colorchooser">tkinter.colorchooser</a>
  &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
  &#8226;   <a href="#tkinter.constants">tkinter.constants</a>
  &#8226;   <a href="#tkinter.dialog">tkinter.dialog</a>
@@ -32379,6 +32414,24 @@ imported by:
  &#8226;   <a href="#tkinter.simpledialog">tkinter.simpledialog</a>
  &#8226;   <a href="#tkinter.ttk">tkinter.ttk</a>
  &#8226;   <a href="#tkinterdnd2.TkinterDnD">tkinterdnd2.TkinterDnD</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="tkinter.colorchooser"></a>
+  <a target="code" href="///C:/Users/Steve/AppData/Local/Programs/Python/Python313/Lib/tkinter/colorchooser.py" type="text/plain"><tt>tkinter.colorchooser</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.commondialog">tkinter.commondialog</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#src.gui.widgets.color_picker">src.gui.widgets.color_picker</a>
+ &#8226;   <a href="#tkinter">tkinter</a>
 
   </div>
 
@@ -32395,6 +32448,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#tkinter">tkinter</a>
+ &#8226;   <a href="#tkinter.colorchooser">tkinter.colorchooser</a>
  &#8226;   <a href="#tkinter.filedialog">tkinter.filedialog</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
 
