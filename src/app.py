@@ -78,7 +78,10 @@ class App(customtkinter.CTkFrame):
             self.current_view.destroy()
         
         callbacks = self.get_callbacks()
-        self.current_view = view_class(self.main_frame, callbacks, **kwargs)
+        if view_class == DictationView:
+            self.current_view = view_class(self.main_frame, callbacks, **kwargs)
+        else:
+            self.current_view = view_class(self.main_frame, callbacks, config=self.config, **kwargs)
         self.current_view.grid(row=0, column=0, sticky="nsew")
 
     def get_callbacks(self):

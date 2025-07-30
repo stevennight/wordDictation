@@ -29,17 +29,26 @@ class SettingsWindow(customtkinter.CTkToplevel):
         history_label = customtkinter.CTkLabel(history_frame, text="保存历史记录数量:")
         history_label.pack(side="left", padx=10)
         self.history_entry = customtkinter.CTkEntry(history_frame)
-        self.history_entry.insert(0, str(self.config.get("history_count", 10)))
+        self.history_entry.insert(0, str(self.config.get("max_history_size", 50)))
         self.history_entry.pack(side="left", padx=10)
+
+        # Accuracy threshold settings
+        accuracy_frame = customtkinter.CTkFrame(self, fg_color="transparent")
+        accuracy_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        accuracy_label = customtkinter.CTkLabel(accuracy_frame, text="正确率阈值 (%):")
+        accuracy_label.pack(side="left", padx=10)
+        self.accuracy_entry = customtkinter.CTkEntry(accuracy_frame)
+        self.accuracy_entry.insert(0, str(self.config.get("accuracy_threshold", 80)))
+        self.accuracy_entry.pack(side="left", padx=10)
 
         # Registry settings
         self.registry_frame = customtkinter.CTkFrame(self, fg_color="transparent")
-        self.registry_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.registry_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
         self.update_registry_buttons()
 
         # Save button
         save_button = customtkinter.CTkButton(self, text="保存设置", command=self.save_settings)
-        save_button.grid(row=3, column=0, padx=20, pady=20)
+        save_button.grid(row=4, column=0, padx=20, pady=20)
 
     def change_theme(self, theme):
         self.config["theme"] = theme
@@ -47,12 +56,16 @@ class SettingsWindow(customtkinter.CTkToplevel):
     def save_settings(self):
         try:
             history_count = int(self.history_entry.get())
-            self.config["history_count"] = history_count
+            self.config["max_history_size"] = history_count
+
+            accuracy_threshold = int(self.accuracy_entry.get())
+            self.config["accuracy_threshold"] = accuracy_threshold
+
             self.parent.save_config()
             self.parent.apply_config()
             self.destroy()
         except ValueError:
-            # Handle invalid input for history count
+            # Handle invalid input
             pass
 
     def update_registry_buttons(self):

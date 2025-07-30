@@ -3,11 +3,11 @@ import os
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {
-    "input_mode": "鼠标",
     "max_history_size": 50,
     "theme": "System",
     "pen_size": 5,
-    "pen_color": "black"
+    "pen_color": "black",
+    "accuracy_threshold": 80
 }
 
 def load_config():

@@ -4,9 +4,10 @@ import os
 from PIL import Image
 
 class HistoryDetailView(customtkinter.CTkFrame):
-    def __init__(self, master, callbacks, **kwargs):
+    def __init__(self, master, callbacks, config, **kwargs):
         super().__init__(master, fg_color="transparent")
         self.callbacks = callbacks
+        self.config = config
         self.file_name = kwargs.get('file_name')
         self.back_callback = kwargs.get('back_callback')
         self.is_summary_view = kwargs.get('is_summary_view', False)
@@ -35,8 +36,8 @@ class HistoryDetailView(customtkinter.CTkFrame):
         self.title_label = customtkinter.CTkLabel(top_frame, text=title_text, font=customtkinter.CTkFont(size=20, weight="bold"))
         self.title_label.pack()
 
-        self.summary_label = customtkinter.CTkLabel(top_frame, text="", font=("Arial", 16))
-        self.summary_label.pack(pady=5)
+        self.summary_frame = customtkinter.CTkFrame(top_frame, fg_color="transparent")
+        self.summary_frame.pack(pady=5)
         
         self.filter_var = customtkinter.BooleanVar()
         self.filter_checkbox = customtkinter.CTkCheckBox(top_frame, text="只显示错误项", variable=self.filter_var, command=self.display_results, height=20)
@@ -74,23 +75,38 @@ class HistoryDetailView(customtkinter.CTkFrame):
 
             self.results = history_data.get("results", []) if isinstance(history_data, dict) else history_data
             
-            correct_count = sum(1 for r in self.results if r['correct'])
-            incorrect_count = len(self.results) - correct_count
-            self.summary_label.configure(text=f"正确: {correct_count} | 错误: {incorrect_count}")
+            stats = history_data.get('stats', {})
+            correct_count = stats.get('correct', 0)
+            incorrect_count = stats.get('incorrect', 0)
 
-            if incorrect_count == 0:
-                self.retry_button.configure(state="disabled")
-            else:
-                self.retry_button.configure(state="normal")
-
-            self.display_results()
+            self.update_summary(correct_count, incorrect_count, self.results)
 
         except Exception as e:
             print(f"Error loading history detail: {e}")
 
     def update_summary(self, correct_count, incorrect_count, results):
         self.results = results
-        self.summary_label.configure(text=f"正确: {correct_count} | 错误: {incorrect_count}")
+        total = correct_count + incorrect_count
+        accuracy = (correct_count / total * 100) if total > 0 else 0
+
+        accuracy_threshold = self.config.get('accuracy_threshold', 80)
+        accuracy_color = "green" if accuracy >= accuracy_threshold else "red"
+
+        # Clear previous summary widgets
+        for widget in self.summary_frame.winfo_children():
+            widget.destroy()
+
+        summary_frame = self.summary_frame
+
+        correct_label = customtkinter.CTkLabel(summary_frame, text=f"正确: {correct_count}", font=("Arial", 16), text_color="green")
+        correct_label.pack(side="left", padx=5)
+
+        incorrect_label = customtkinter.CTkLabel(summary_frame, text=f"错误: {incorrect_count}", font=("Arial", 16), text_color="red")
+        incorrect_label.pack(side="left", padx=5)
+
+        accuracy_label = customtkinter.CTkLabel(summary_frame, text=f"正确率: {accuracy:.1f}%", font=("Arial", 16), text_color=accuracy_color)
+        accuracy_label.pack(side="left", padx=5)
+
         self.display_results()
 
         if incorrect_count == 0:

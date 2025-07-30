@@ -2,9 +2,10 @@ import customtkinter
 from tkinterdnd2 import DND_FILES
 
 class InitialView(customtkinter.CTkFrame):
-    def __init__(self, parent, app_callbacks):
+    def __init__(self, parent, app_callbacks, config, **kwargs):
         super().__init__(parent, fg_color="transparent")
         self.app_callbacks = app_callbacks
+        self.config = config
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1) # Center the content

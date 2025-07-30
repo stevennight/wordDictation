@@ -3,9 +3,10 @@ import os
 import json
 
 class HistoryView(customtkinter.CTkFrame):
-    def __init__(self, master, callbacks):
+    def __init__(self, master, callbacks, config, **kwargs):
         super().__init__(master, fg_color="transparent")
         self.callbacks = callbacks
+        self.config = config
         self.back_to_main_callback = self.callbacks['show_initial_view']
         self.history_files = []
 
@@ -51,11 +52,31 @@ class HistoryView(customtkinter.CTkFrame):
         label = customtkinter.CTkLabel(entry_frame, text=base_name, anchor="w")
         label.pack(side="left", fill="x", expand=True, padx=10, pady=5)
 
+        try:
+            with open(os.path.join("history", file_name), 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            stats = data.get('stats', {})
+            correct = stats.get('correct', 0)
+            wrong = stats.get('incorrect', 0)
+            total = correct + wrong
+            accuracy = (correct / total * 100) if total > 0 else 0
+
+            accuracy_threshold = self.config.get('accuracy_threshold', 80)
+            accuracy_color = "green" if accuracy >= accuracy_threshold else "red"
+
+            stats_text = f"{correct}/{wrong}/{total}  {accuracy:.1f}%"
+            stats_label = customtkinter.CTkLabel(entry_frame, text=stats_text, anchor="e", text_color=accuracy_color)
+            stats_label.pack(side="left", padx=10)
+
+        except (IOError, json.JSONDecodeError) as e:
+            print(f"Error reading history file {file_name}: {e}")
+
+
         view_command = lambda f=file_name: self.callbacks['view_history_detail'](f)
         entry_frame.bind("<Double-Button-1>", lambda e, f=file_name: self.callbacks['view_history_detail'](f))
         label.bind("<Double-Button-1>", lambda e, f=file_name: self.callbacks['view_history_detail'](f))
 
-        for widget in [entry_frame, label]:
+        for widget in [entry_frame, label, stats_label]:
             widget.bind("<ButtonPress-1>", self._on_button_press)
             widget.bind("<B1-Motion>", self._on_motion)
             widget.bind("<ButtonRelease-1>", self._on_button_release)
