@@ -1,6 +1,7 @@
 import customtkinter
 import os
 import json
+from src.utils.file_handler import delete_history_record
 
 class HistoryView(customtkinter.CTkFrame):
     def __init__(self, master, callbacks, config, **kwargs):
@@ -36,55 +37,91 @@ class HistoryView(customtkinter.CTkFrame):
         if not os.path.exists(history_dir):
             return
 
-        self.history_files = sorted([f for f in os.listdir(history_dir) if f.endswith('.json')], reverse=True)
+        try:
+            with open(os.path.join(history_dir, "history_index.json"), 'r', encoding='utf-8') as f:
+                index = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return
+
+        # 按时间倒序排序
+        index.sort(key=lambda x: x['timestamp'], reverse=True)
 
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
-        for file_name in self.history_files:
-            self.add_history_entry(file_name)
+        for record in index:
+            self.add_history_entry(record)
 
-    def add_history_entry(self, file_name):
+    def add_history_entry(self, record):
         entry_frame = customtkinter.CTkFrame(self.scrollable_frame, fg_color=("gray85", "gray15"))
         entry_frame.pack(fill="x", padx=10, pady=5)
 
-        base_name = os.path.splitext(file_name)[0]
-        label = customtkinter.CTkLabel(entry_frame, text=base_name, anchor="w")
-        label.pack(side="left", fill="x", expand=True, padx=10, pady=5)
+        # 创建一个子框架来容纳文件名和重做标识
+        title_frame = customtkinter.CTkFrame(entry_frame, fg_color="transparent")
+        title_frame.pack(side="left", fill="x", expand=True, padx=10, pady=5)
 
-        try:
-            with open(os.path.join("history", file_name), 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            stats = data.get('stats', {})
-            correct = stats.get('correct', 0)
-            wrong = stats.get('incorrect', 0)
-            total = correct + wrong
-            accuracy = (correct / total * 100) if total > 0 else 0
+        # 显示默写文件名和时间
+        if record.get('is_retry'):
+            display_text = f"{record['word_file_name']} {record.get('original_timestamp', '')}"
+        else:
+            display_text = f"{record['word_file_name']}"
+        
+        label = customtkinter.CTkLabel(title_frame, text=display_text, anchor="w")
+        label.pack(side="left")
 
-            accuracy_threshold = self.config.get('accuracy_threshold', 80)
-            accuracy_color = "green" if accuracy >= accuracy_threshold else "red"
+        record_time_label = customtkinter.CTkLabel(
+            title_frame,
+            text=f"{record['timestamp']}",
+            fg_color="#666666",
+            text_color="white",
+            corner_radius=4,
+            width=40,
+            height=20
+        )
+        record_time_label.pack(side="left", padx=10)
 
-            stats_text = f"{correct}/{wrong}/{total}  {accuracy:.1f}%"
-            stats_label = customtkinter.CTkLabel(entry_frame, text=stats_text, anchor="e", text_color=accuracy_color)
-            stats_label.pack(side="left", padx=10)
+        # 如果是重做记录，添加红底白字的"重做"标识
+        if record.get('is_retry'):
+            retry_label = customtkinter.CTkLabel(
+                title_frame,
+                text="重做",
+                fg_color="#C00000",
+                text_color="white",
+                corner_radius=4,
+                width=40,
+                height=20
+            )
+            retry_label.pack(side="left", padx=10)
 
-        except (IOError, json.JSONDecodeError) as e:
-            print(f"Error reading history file {file_name}: {e}")
+        # 显示统计信息
+        stats = record['stats']
+        correct = stats.get('correct', 0)
+        wrong = stats.get('incorrect', 0)
+        total = correct + wrong
+        accuracy = (correct / total * 100) if total > 0 else 0
 
+        accuracy_threshold = self.config.get('accuracy_threshold', 80)
+        accuracy_color = "green" if accuracy >= accuracy_threshold else "red"
 
-        view_command = lambda f=file_name: self.callbacks['view_history_detail'](f)
-        entry_frame.bind("<Double-Button-1>", lambda e, f=file_name: self.callbacks['view_history_detail'](f))
-        label.bind("<Double-Button-1>", lambda e, f=file_name: self.callbacks['view_history_detail'](f))
+        stats_text = f"{correct}/{wrong}/{total}  {accuracy:.1f}%"
+        stats_label = customtkinter.CTkLabel(entry_frame, text=stats_text, anchor="e", text_color=accuracy_color)
+        stats_label.pack(side="left", padx=10)
 
-        for widget in [entry_frame, label, stats_label]:
+        # 绑定事件处理器
+        view_command = lambda f=record['filename']: self.callbacks['view_history_detail'](f)
+        
+        # 将双击事件绑定到整个条目框架
+        for widget in [entry_frame, title_frame, label, stats_label]:
+            widget.bind("<Double-Button-1>", lambda e, f=record['filename']: self.callbacks['view_history_detail'](f))
             widget.bind("<ButtonPress-1>", self._on_button_press)
             widget.bind("<B1-Motion>", self._on_motion)
             widget.bind("<ButtonRelease-1>", self._on_button_release)
 
-        view_button = customtkinter.CTkButton(entry_frame, text="查看", width=60, command=lambda f=file_name: self.callbacks['view_history_detail'](f))
+        # 添加按钮
+        view_button = customtkinter.CTkButton(entry_frame, text="查看", width=60, command=lambda f=record['filename']: self.callbacks['view_history_detail'](f))
         view_button.pack(side="right", padx=5)
 
-        delete_button = customtkinter.CTkButton(entry_frame, text="删除", width=60, fg_color="#C00000", hover_color="#A00000", command=lambda f=file_name: self.delete_history(f))
+        delete_button = customtkinter.CTkButton(entry_frame, text="删除", width=60, fg_color="#C00000", hover_color="#A00000", command=lambda f=record['filename']: self.delete_history(f))
         delete_button.pack(side="right", padx=5)
 
 
@@ -96,25 +133,23 @@ class HistoryView(customtkinter.CTkFrame):
     def _on_motion(self, event):
         if hasattr(self, 'dragging') and self.dragging:
             delta_y = event.y - self.last_y
-            self.scrollable_frame._parent_canvas.yview_scroll(-1 * int(delta_y), "units")
+            first, last = self.scrollable_frame._parent_canvas.yview()
+
+            # 向上拖动 (内容向下滚动)
+            if delta_y > 0 and first > 0:
+                self.scrollable_frame._parent_canvas.yview_scroll(-1, "units")
+            # 向下拖动 (内容向上滚动)
+            elif delta_y < 0 and last < 1.0:
+                self.scrollable_frame._parent_canvas.yview_scroll(1, "units")
+
             self.last_y = event.y
 
     def _on_button_release(self, event):
         self.dragging = False
 
     def delete_history(self, file_name):
-        print(f"Deleting {file_name}")
-        history_dir = "history"
-        base_name = os.path.splitext(file_name)[0]
-        json_path = os.path.join(history_dir, file_name)
-        dir_path = os.path.join(history_dir, base_name)
-
         try:
-            if os.path.exists(json_path):
-                os.remove(json_path)
-            if os.path.exists(dir_path):
-                import shutil
-                shutil.rmtree(dir_path)
-            self.load_history() # Refresh the list
+            delete_history_record(file_name)
+            self.load_history() # 刷新列表
         except Exception as e:
             print(f"Error deleting history: {e}")

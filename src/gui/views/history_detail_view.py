@@ -66,20 +66,56 @@ class HistoryDetailView(customtkinter.CTkFrame):
         self.back_button.pack(side="left", padx=20)
 
     def retry_incorrect(self):
-        self.master.master.results = self.results
-        self.callbacks['retry_incorrect']()
+        incorrect_results = [res for res in self.results if not res['correct']]
+        if not incorrect_results:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "没有错题可以重做。")
+            return
+
+        if not self.is_summary_view:
+            self.callbacks['retry_incorrect'](
+                word_file_name=self.word_file_name, 
+                timestamp=self.original_timestamp, 
+                incorrect_words=incorrect_results
+            )
+        else:
+            word_file_path = self.master.master.word_file_path
+            original_word_file_name = os.path.basename(word_file_path) if word_file_path else None
+            self.callbacks['retry_incorrect'](
+                word_file_name=original_word_file_name, 
+                timestamp=None, 
+                incorrect_words=incorrect_results
+            )
 
     def load_history_details(self):
         history_dir = "history"
+        index_path = os.path.join(history_dir, "history_index.json")
         json_path = os.path.join(history_dir, self.file_name)
 
         try:
+            with open(index_path, 'r', encoding='utf-8') as f:
+                index = json.load(f)
+            
+            record = next((r for r in index if r['filename'] == self.file_name), None)
+
+            if not record:
+                print(f"Record not found for {self.file_name}")
+                return
+
+            self.word_file_name = record.get('word_file_name', '未知文件')
+            self.timestamp = record.get('timestamp', '未知时间')
+            self.original_timestamp = record.get('original_timestamp', self.timestamp)
+
+            if record.get('is_retry'):
+                self.title_label.configure(text=f"{self.word_file_name} {self.original_timestamp} ({self.timestamp})")
+            else:
+                self.title_label.configure(text=f"{self.word_file_name} ({self.timestamp})")
+
             with open(json_path, 'r', encoding='utf-8') as f:
                 history_data = json.load(f)
 
-            self.results = history_data.get("results", []) if isinstance(history_data, dict) else history_data
-            
-            stats = history_data.get('stats', {})
+            self.results = history_data.get("results", [])
+            stats = record.get('stats', {})
             correct_count = stats.get('correct', 0)
             incorrect_count = stats.get('incorrect', 0)
 
@@ -219,6 +255,20 @@ class HistoryDetailView(customtkinter.CTkFrame):
 
     def _on_button_release(self, event):
         self.dragging = False
+
+    def _on_motion(self, event):
+        if hasattr(self, 'dragging') and self.dragging:
+            delta_y = event.y - self.last_y
+            first, last = self.scrollable_frame._parent_canvas.yview()
+
+            # 向上拖动 (内容向下滚动)
+            if delta_y > 0 and first > 0:
+                self.scrollable_frame._parent_canvas.yview_scroll(-1, "units")
+            # 向下拖动 (内容向上滚动)
+            elif delta_y < 0 and last < 1.0:
+                self.scrollable_frame._parent_canvas.yview_scroll(1, "units")
+
+            self.last_y = event.y
 
     def _on_mouse_wheel(self, event):
         delta = -1 * (event.delta if hasattr(event, 'delta') else (-120 if event.num == 4 else 120))

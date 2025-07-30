@@ -37,17 +37,29 @@ def clear_handwriting_cache():
         for f in os.listdir(IMAGE_CACHE_DIR):
             os.remove(os.path.join(IMAGE_CACHE_DIR, f))
 
-def save_history(results, stats, word_file_path, config):
+import uuid
+
+HISTORY_INDEX_FILE = os.path.join(HISTORY_DIR, "history_index.json")
+
+def load_history_index():
+    if not os.path.exists(HISTORY_INDEX_FILE):
+        return []
+    with open(HISTORY_INDEX_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def save_history_index(index):
+    with open(HISTORY_INDEX_FILE, 'w', encoding='utf-8') as f:
+        json.dump(index, f, ensure_ascii=False, indent=4)
+
+def save_history(results, stats, word_file_path, config, is_retry=False):
     """Saves the dictation session to the history."""
     if not os.path.exists(HISTORY_DIR):
         os.makedirs(HISTORY_DIR)
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    if word_file_path:
-        file_basename = os.path.splitext(os.path.basename(word_file_path))[0]
-        history_filename_base = f"{file_basename}_{timestamp}"
-    else:
-        history_filename_base = f"retry_{timestamp}"
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    history_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    random_str = uuid.uuid4().hex[:8]
+    history_filename_base = f"{history_timestamp}_{random_str}"
     history_json_path = os.path.join(HISTORY_DIR, f"{history_filename_base}.json")
     history_image_dir = os.path.join(HISTORY_DIR, history_filename_base)
 
@@ -55,9 +67,6 @@ def save_history(results, stats, word_file_path, config):
         os.makedirs(history_image_dir)
 
     history_data = {
-        "timestamp": timestamp,
-        "word_file": os.path.basename(word_file_path) if word_file_path else "unknown",
-        "stats": stats,
         "results": []
     }
 
@@ -82,23 +91,67 @@ def save_history(results, stats, word_file_path, config):
     with open(history_json_path, 'w', encoding='utf-8') as f:
         json.dump(history_data, f, ensure_ascii=False, indent=4)
 
-    max_history = config.get("history_count", 10)
-    enforce_history_limit(max_history)
+    index = load_history_index()
+    if is_retry and ' (' in word_file_path and ')' in word_file_path:
+        # 从 "文件名 (时间)" 格式中提取文件名和时间
+        word_file_name = word_file_path[:word_file_path.rfind(' (')]
+        original_timestamp = word_file_path[word_file_path.rfind('(') + 1:word_file_path.rfind(')')]
+    else:
+        word_file_name = os.path.basename(word_file_path) if word_file_path else "重做错题"
+        original_timestamp = current_timestamp
 
-def enforce_history_limit(max_size):
+    index.append({
+        "filename": f"{history_filename_base}.json",
+        "word_file_name": word_file_name,
+        "timestamp": current_timestamp,
+        "original_timestamp": original_timestamp if is_retry else current_timestamp,
+        "is_retry": is_retry,
+        "stats": stats
+    })
+
+    max_history = config.get("max_history_size", 10)
+    print(f"当前历史记录数量: {len(index)}, 最大允许数量: {max_history}")
+    enforce_history_limit(index, max_history)
+
+def delete_history_record(filename):
+    """Deletes a specific history record's files and its index entry."""
+    index = load_history_index()
+    
+    # Find and remove the record from the index
+    updated_index = [record for record in index if record['filename'] != filename]
+    
+    if len(updated_index) < len(index):
+        save_history_index(updated_index)
+        
+        # Delete the associated files
+        json_path = os.path.join(HISTORY_DIR, filename)
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        image_dir = os.path.join(HISTORY_DIR, os.path.splitext(filename)[0])
+        if os.path.exists(image_dir):
+            shutil.rmtree(image_dir)
+        
+        return True
+    return False
+
+def enforce_history_limit(index, max_size):
     """Ensures the number of history records does not exceed the max size."""
-    history_files = sorted(
-        [os.path.join(HISTORY_DIR, f) for f in os.listdir(HISTORY_DIR) if f.endswith('.json')],
-        key=os.path.getmtime
-    )
+    if len(index) <= max_size:
+        save_history_index(index)
+        return
 
-    while len(history_files) > max_size:
-        oldest_file = history_files.pop(0)
-        image_dir_name = os.path.splitext(os.path.basename(oldest_file))[0]
-        image_dir_path = os.path.join(HISTORY_DIR, image_dir_name)
-        try:
-            os.remove(oldest_file)
-            if os.path.exists(image_dir_path):
-                shutil.rmtree(image_dir_path)
-        except OSError as e:
-            print(f"Error removing old history: {e}")
+    # Sort by timestamp to find the oldest records
+    index.sort(key=lambda x: x.get('timestamp', ''))
+
+    # Determine which records to delete and which to keep
+    num_to_delete = len(index) - max_size
+    records_to_delete = index[:num_to_delete]
+    remaining_records = index[num_to_delete:]
+
+    # Delete the files of the oldest records
+    for record in records_to_delete:
+        delete_history_record(record['filename'])
+
+    # Save the updated index
+    save_history_index(remaining_records)

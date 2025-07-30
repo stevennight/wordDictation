@@ -163,7 +163,11 @@ class App(customtkinter.CTkFrame):
             self.dictation_list = self.dictation_list[:quantity]
         self.start_dictation()
 
-    def start_dictation(self):
+    def start_dictation(self, is_retry=False):
+        if not is_retry:
+            self.original_word_file_name_for_retry = None
+            self.original_timestamp_for_retry = None
+
         self.history_button.pack_forget()
         self.current_word_index = 0
         self.correct_count = 0
@@ -229,24 +233,40 @@ class App(customtkinter.CTkFrame):
             'total': len(self.dictation_list)
         }
         if save:
-            save_history(self.results, stats, self.word_file_path, self.config)
+            is_retry = hasattr(self, 'is_retry_mode') and self.is_retry_mode
+            word_file_path = self.word_file_path
+            if is_retry:
+                word_file_name = getattr(self, 'original_word_file_name_for_retry', '重做错题')
+                timestamp = getattr(self, 'original_timestamp_for_retry', '')
+                if timestamp:
+                    word_file_path = f"{word_file_name} ({timestamp})"
+                else:
+                    word_file_path = word_file_name
+            save_history(self.results, stats, word_file_path, self.config, is_retry=is_retry)
+            self.is_retry_mode = False
+            self.original_word_file_name_for_retry = None
+            self.original_timestamp_for_retry = None
         self.history_detail_context = {
             'is_summary_view': True,
             'results': self.results,
             'stats': stats,
+            'word_file_path': self.word_file_path, # Make sure this is passed
             'back_callback': self.show_initial_view
         }
         self.switch_view(HistoryDetailView, **self.history_detail_context)
 
-    def retry_incorrect(self):
-        self.dictation_list = [res for res in self.results if not res['correct']]
-        if not self.dictation_list:
+    def retry_incorrect(self, word_file_name, timestamp, incorrect_words):
+        if not incorrect_words:
             tkinter.messagebox.showinfo("提示", "没有错题可以重做。")
             return
-        # Convert back to the original format if needed
-        self.dictation_list = [{'prompt': d['prompt'], 'answer': d['answer']} for d in self.dictation_list]
-        self.word_file_path = None  # 重做错题时，没有原始文件路径
-        self.start_dictation()
+        
+        self.is_retry_mode = True
+        self.dictation_list = incorrect_words
+        
+        self.original_word_file_name_for_retry = word_file_name
+        self.original_timestamp_for_retry = timestamp
+        
+        self.start_dictation(is_retry=True)
 
     def finish_session(self):
         self.history_button.pack(side="left", padx=10, pady=5)
