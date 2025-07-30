@@ -14,6 +14,7 @@ class HistoryDetailView(customtkinter.CTkFrame):
         stats = kwargs.get('stats', {})
         self.correct_count = stats.get('correct', 0)
         self.incorrect_count = stats.get('incorrect', 0)
+        self.last_y = 0
 
         self._create_widgets()
         if self.is_summary_view:
@@ -43,8 +44,15 @@ class HistoryDetailView(customtkinter.CTkFrame):
 
         self.scrollable_frame = customtkinter.CTkScrollableFrame(self)
         self.scrollable_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
-        self.scrollable_frame.bind("<Enter>", self._on_enter)
-        self.scrollable_frame.bind("<Leave>", self._on_leave)
+
+        # 绑定事件到滚动框架和其内部的画布
+        for widget in [self.scrollable_frame, self.scrollable_frame._parent_canvas]:
+            widget.bind("<ButtonPress-1>", self._on_button_press)
+            widget.bind("<B1-Motion>", self._on_motion)
+            widget.bind("<ButtonRelease-1>", self._on_button_release)
+            widget.bind("<MouseWheel>", self._on_mouse_wheel)
+            widget.bind("<Button-4>", self._on_mouse_wheel)
+            widget.bind("<Button-5>", self._on_mouse_wheel)
 
         button_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         button_frame.grid(row=2, column=0, pady=20)
@@ -170,27 +178,19 @@ class HistoryDetailView(customtkinter.CTkFrame):
             except Exception as e:
                 print(f"Error loading image {image_path}: {e}")
 
-    def _on_enter(self, event):
-        self.scrollable_frame.bind_all("<MouseWheel>", self._on_mouse_wheel)
-        try:
-            self.scrollable_frame.bind_all("<TouchMove>", self._on_touch_scroll)
-            self.scrollable_frame.bind_all("<PenMove>", self._on_pen_scroll)
-        except:
-            pass
+    def _on_button_press(self, event):
+        self.last_y = event.y
+        self.dragging = True
 
-    def _on_leave(self, event):
-        self.scrollable_frame.unbind_all("<MouseWheel>")
-        try:
-            self.scrollable_frame.unbind_all("<TouchMove>")
-            self.scrollable_frame.unbind_all("<PenMove>")
-        except:
-            pass
+    def _on_motion(self, event):
+        if hasattr(self, 'dragging') and self.dragging:
+            delta_y = event.y - self.last_y
+            self.scrollable_frame._parent_canvas.yview_scroll(-1 * int(delta_y / 2), "units")
+            self.last_y = event.y
+
+    def _on_button_release(self, event):
+        self.dragging = False
 
     def _on_mouse_wheel(self, event):
-        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-    def _on_touch_scroll(self, event):
-        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-
-    def _on_pen_scroll(self, event):
-        self.scrollable_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        delta = -1 * (event.delta if hasattr(event, 'delta') else (-120 if event.num == 4 else 120))
+        self.scrollable_frame._parent_canvas.yview_scroll(int(delta/120), "units")

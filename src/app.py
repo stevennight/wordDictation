@@ -176,7 +176,7 @@ class App(customtkinter.CTkFrame):
             word_data = self.dictation_list[self.current_word_index]
             if hasattr(self, 'current_view') and isinstance(self.current_view, DictationView):
                 self.current_view.reset_view()
-                self.current_view.update_prompt(word_data['prompt'])
+                self.current_view.update_prompt(word_data['prompt'], self.current_word_index + 1, len(self.dictation_list))
         else:
             self.show_summary()
 

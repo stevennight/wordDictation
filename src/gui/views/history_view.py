@@ -13,14 +13,17 @@ class HistoryView(customtkinter.CTkFrame):
         self.load_history()
 
     def _create_widgets(self):
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         self.title_label = customtkinter.CTkLabel(self, text="历史记录", font=customtkinter.CTkFont(size=24, weight="bold"))
-        self.title_label.pack(pady=10)
+        self.title_label.grid(row=0, column=0, pady=10, sticky="n")
 
         self.scrollable_frame = customtkinter.CTkScrollableFrame(self, label_text="默写记录")
-        self.scrollable_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        self.scrollable_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
 
-        self.back_button = customtkinter.CTkButton(self, text="返回", command=self.back_to_main_callback)
-        self.back_button.pack(pady=10)
+        self.back_button = customtkinter.CTkButton(self, text="返回", command=self.back_to_main_callback, height=40, font=("Arial", 16))
+        self.back_button.grid(row=2, column=0, pady=20, sticky="s")
 
     def load_history(self):
         history_dir = "history"

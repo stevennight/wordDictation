@@ -14,6 +14,7 @@ class HandwritingCanvas(customtkinter.CTkCanvas):
         self.paint_mode = "pen"
         self.pen_color = "black"
         self.pen_width = 4
+        self.annotation_pen_width = 4
         self.eraser_width = 20
         self.annotation_mode = False
 
@@ -27,6 +28,9 @@ class HandwritingCanvas(customtkinter.CTkCanvas):
     def set_pen_size(self, size):
         self.pen_width = int(size)
 
+    def set_annotation_pen_size(self, size):
+        self.annotation_pen_width = int(size)
+
     def set_eraser_size(self, size):
         self.eraser_width = int(size)
 
@@ -39,7 +43,7 @@ class HandwritingCanvas(customtkinter.CTkCanvas):
         if self.last_x and self.last_y:
             if self.annotation_mode:
                 color = "red"
-                width = 3
+                width = self.annotation_pen_width
                 self.create_line(self.last_x, self.last_y, event.x, event.y, fill=color, width=width, capstyle=tkinter.ROUND, smooth=tkinter.TRUE, splinesteps=1, tags="annotation")
             else:
                 color = self.pen_color if self.paint_mode == "pen" else "white"

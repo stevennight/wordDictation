@@ -1,11 +1,13 @@
 import customtkinter
 from ..widgets.canvas import HandwritingCanvas
+from ...utils import config_manager
 
 class CopyingView(customtkinter.CTkFrame):
     def __init__(self, parent, callbacks, **kwargs):
         super().__init__(parent, fg_color="transparent")
         self.callbacks = callbacks
         self.word_data = kwargs.get('word_data')
+        self.config = config_manager.load_config()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -15,6 +17,8 @@ class CopyingView(customtkinter.CTkFrame):
 
         self.canvas = HandwritingCanvas(self)
         self.canvas.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.set_pen_size(self.config.get('pen_size', 5))
+        self.set_pen_color(self.config.get('pen_color', 'black'))
 
         self._create_tool_frame()
         self._create_control_buttons()
@@ -30,16 +34,35 @@ class CopyingView(customtkinter.CTkFrame):
         self.paint_mode_button.pack(side="left", padx=10, pady=5)
         self.paint_mode_button.set("画笔")
 
-        self.pen_color_button = customtkinter.CTkOptionMenu(self.tool_frame, values=["black", "blue", "red"], command=self.canvas.set_pen_color)
+        self.pen_color_button = customtkinter.CTkButton(self.tool_frame, text="颜色", command=self.open_color_picker)
         self.pen_color_button.pack(side="left", padx=10, pady=5)
 
-        self.eraser_size_slider = customtkinter.CTkSlider(self.tool_frame, from_=5, to=50, command=self.canvas.set_eraser_size)
-        self.eraser_size_slider.pack(side="left", padx=10, pady=5)
-        self.eraser_size_slider.set(20)
+        self.pen_size_slider = customtkinter.CTkSlider(self.tool_frame, from_=1, to=10, command=self.set_pen_size)
+        self.pen_size_slider.set(self.config.get('pen_size', 5))
+        self.pen_size_slider.pack(side="left", padx=10, pady=5, fill="x", expand=True)
 
 
 
 
+
+
+
+    def set_pen_size(self, size):
+        pen_size = int(size)
+        self.canvas.set_pen_size(pen_size)
+        self.config['pen_size'] = pen_size
+        config_manager.save_config(self.config)
+
+    def open_color_picker(self):
+        from ..widgets.color_picker import ColorPickerDialog
+        dialog = ColorPickerDialog(self, command=self.set_pen_color)
+        dialog.transient(self.winfo_toplevel())
+        dialog.grab_set()
+
+    def set_pen_color(self, color):
+        self.canvas.set_pen_color(color)
+        self.config['pen_color'] = color
+        config_manager.save_config(self.config)
 
     def set_paint_mode(self, mode):
         if mode == "画笔":
